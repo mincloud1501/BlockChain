@@ -1,7 +1,7 @@
 # BlockChain
 
 블록체인의 개념 이해와 Hyperledger Fabric을 사용한 실습 및 연구 [![Sources](https://img.shields.io/badge/출처-hyperledger-yellow)](https://hyperledger-fabric.readthedocs.io/en/latest/index.html) [![Sources](https://img.shields.io/badge/출처-IBM-yellow)](
-https://www.ibm.com/kr-ko/blockchain/hyperledger?p1=Search&p4=43700052661683012&p5=e&cm_mmc=Search_Google-_-1S_1S-_-AS_KR-_-%ED%95%98%EC%9D%B4%ED%8D%BC%EB%A0%88%EC%A0%80%20%ED%8C%A8%EB%B8%8C%EB%A6%AD_e&cm_mmca7=71700000065178082&cm_mmca8=aud-382859943522:kwd-826282347286&cm_mmca9=CjwKCAjw_qb3BRAVEiwAvwq6Vup_ISx8REow-0sy5_lxcM54YzWUTSeJOnuQAyJmP2BRAGISZirKxxoCG3gQAvD_BwE&cm_mmca10=427974933510&cm_mmca11=e&gclid=CjwKCAjw_qb3BRAVEiwAvwq6Vup_ISx8REow-0sy5_lxcM54YzWUTSeJOnuQAyJmP2BRAGISZirKxxoCG3gQAvD_BwE&gclsrc=aw.ds) [![Sources](https://img.shields.io/badge/출처-IBM-marbles-yellow)](https://github.com/IBM-Blockchain-Archive/marbles)
+https://www.ibm.com/kr-ko/blockchain/hyperledger?p1=Search&p4=43700052661683012&p5=e&cm_mmc=Search_Google-_-1S_1S-_-AS_KR-_-%ED%95%98%EC%9D%B4%ED%8D%BC%EB%A0%88%EC%A0%80%20%ED%8C%A8%EB%B8%8C%EB%A6%AD_e&cm_mmca7=71700000065178082&cm_mmca8=aud-382859943522:kwd-826282347286&cm_mmca9=CjwKCAjw_qb3BRAVEiwAvwq6Vup_ISx8REow-0sy5_lxcM54YzWUTSeJOnuQAyJmP2BRAGISZirKxxoCG3gQAvD_BwE&cm_mmca10=427974933510&cm_mmca11=e&gclid=CjwKCAjw_qb3BRAVEiwAvwq6Vup_ISx8REow-0sy5_lxcM54YzWUTSeJOnuQAyJmP2BRAGISZirKxxoCG3gQAvD_BwE&gclsrc=aw.ds)
 
 ## Hyperledger
 
@@ -59,8 +59,8 @@ https://www.ibm.com/kr-ko/blockchain/hyperledger?p1=Search&p4=43700052661683012&
 
 ```bash
 $sudo apt update
-$sudo apt upgrade
 $sudo apt -y install apt-transport-https ca-certificates curl software-properties-common
+$sudo apt install curl
 $curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 $sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 
@@ -84,8 +84,8 @@ $sudo apt -y install docker-compose
 #### Go LANG 설치
 
 ```bash
-$wget https://dl.google.com/go/go1.10.4.linux-amd64.tar.gz
-$sudo tar -C /usr/local -xzf go1.10.4.linux-amd64.tar.gz
+$wget wget https://storage.googleapis.com/golang/go1.14.linux-amd64.tar.gz
+$sudo tar -C /usr/local -xzf go1.14.linux-amd64.tar.gz
 $echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.profile
 $cd
 $mkdir go
@@ -102,47 +102,28 @@ $source ~/.profile
 #### Nodejs, npm 설치
 
 ```bash
-$curl -sL https://deb.nodesource.com/setup_8.x | sudo bash -
-$sudo apt install nodejs
-$node --version
-$npm --version
+#nodejs 최신버전 설치
+$curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+$sudo apt-get install -y nodejs
+$node -v
+$npm -v
 ```
 
-#### GNU make, gcc/g++, libtool 설치
+#### GNU make, gcc/g++, libtool, jq 설치
 
 ```bash
 $sudo apt -y install make gcc g++ libtool
-```
-
-#### prereqs-ubuntu.sh을 이용하여 한번에 설치하기
-
-```bash
-$curl -O https://hyperledger.github.io/composer/latest/prereqs-ubuntu.sh
-$chmod u+x prereqs-ubuntu.sh
-$./prereqs-ubuntu.sh
-
-# Go Lang 설치
-$wget https://dl.google.com/go/go1.11.2.linux-amd64.tar.gz
-$tar -xzvf go1.11.2.linux-amd64.tar.gz
-$sudo mv go/ /usr/local
-
-# 환경변수 설정
-$vi ~/.bashrc
-#(add these 2 lines to end of file)
-export GOPATH=/usr/local/go
-export PATH=$PATH:$GOPATH/bin
 
 # jq 설치 후 재로그인
 $sudo apt-get install jq
 $exit
-$su - explorer
 ```
 
 ---
 
 ### ■ 2. Install Samples, Binaries and Using the Test Network
 
-#### Hyperledger Fabric 최신 버전 설치
+#### Hyperledger Fabric 최신 버전 설치 (v.2.1.1)
 
 ```bash
 $curl -sSL https://bit.ly/2ysbOFE | bash -s
@@ -293,4 +274,98 @@ $./start.sh
 
 ---
 
-### ■ Hyperledger Fabric Transaction
+### ■ Hyperledger Fabric Transaction [![Sources](https://img.shields.io/badge/출처-IBM_marbles-yellow)](https://github.com/IBM-Blockchain-Archive/marbles)
+
+![transaction](images/transaction.png)
+
+1. Download Fabric Samples
+
+```bash
+$cd fabric-samples
+$curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/master/scripts/bootstrap.sh -o setup_script.sh
+$sudo bash setup_script.sh
+$cd javascript
+
+#의존성 라이브러리를 다운로드
+$npm install --unsafe-perm
+```
+
+2. Start your network
+
+- 많은 시행 착오 끝에 원인은 잘 모르겠지만, `CC_SRC_LANGUAGE`의 설정 값을 `javascript`로 변경하니 정상 수행되었다. 아무래도 `go`의 설정을 변경해 줘야 하는 것 같은데...
+
+[startFabric.sh]
+
+```bash
+# go --> javascript
+CC_SRC_LANGUAGE=${1:-"javascript"}
+```
+
+```bash
+$cd ./fabcar
+$sudo ./startFabric.sh
+
+#정상 start 확인
+$docker ps
+
+CONTAINER ID IMAGE COMMAND                  CREATED              STATUS              					  PORTS                                      NAMES
+6672ab9fc475 hyperledger/fabric-peer:latest "peer node start"    About a minute ago   Up About a minute   0.0.0.0:7051->7051/tcp 					 peer0.org1.example.com
+75bf8d2a7533 hyperledger/fabric-peer:latest "peer node start"    About a minute ago   Up About a minute   7051/tcp, 0.0.0.0:9051->9051/tcp 			 peer0.org2.example.com
+4536708153ba hyperledger/fabric-couchdb "tini -- /docker-ent…"   About a minute ago   Up About a minute   4369/tcp, 9100/tcp, 0.0.0.0:5984->5984/tcp couchdb0
+2c57916604db hyperledger/fabric-couchdb "tini -- /docker-ent…"   About a minute ago   Up About a minute   4369/tcp, 9100/tcp, 0.0.0.0:7984->5984/tcp couchdb1
+6c5e341ad089 hyperledger/fabric-orderer:latest "orderer"         About a minute ago   Up About a minute   0.0.0.0:7050->7050/tcp 					 orderer.example.com
+541a73b5bcf4 hyperledger/fabric-ca:latest "sh -c 'fabric-ca-se…" 2 minutes ago        Up 2 minutes        7054/tcp, 0.0.0.0:9054->9054/tcp           ca_orderer
+f4890a0e5f34 yperledger/fabric-ca:latest "sh -c 'fabric-ca-se…"  2 minutes ago        Up 2 minutes        7054/tcp, 0.0.0.0:8054->8054/tcp           ca_org2
+4cc489791f42 hyperledger/fabric-ca:latest "sh -c 'fabric-ca-se…" 2 minutes ago        Up 2 minutes        0.0.0.0:7054->7054/tcp                     ca_org1
+
+#User 등록 및 query 수행
+$cd javascript
+$node enrollAdmin.js
+Wallet path: /home/mincloud/fabric-samples/fabcar/javascript/wallet
+Successfully enrolled admin user "admin" and imported it into the wallet
+
+$node registerUser.js 
+Wallet path: /home/mincloud/fabric-samples/fabcar/javascript/wallet
+Successfully registered and enrolled admin user "appUser" and imported it into the wallet
+
+$node query.js
+
+Wallet path: /home/mincloud/fabric-samples/fabcar/javascript/wallet
+Transaction has been evaluated, result is: [{"Key":"CAR0","Record":{"color":"blue","docType":"car","make":"Toyota","model":"Prius","owner":"Tomoko"}},{"Key":"CAR1","Record":{"color":"red","docType":"car","make":"Ford","model":"Mustang","owner":"Brad"}},{"Key":"CAR2","Record":{"color":"green","docType":"car","make":"Hyundai","model":"Tucson","owner":"Jin Soo"}},{"Key":"CAR3","Record":{"color":"yellow","docType":"car","make":"Volkswagen","model":"Passat","owner":"Max"}},{"Key":"CAR4","Record":{"color":"black","docType":"car","make":"Tesla","model":"S","owner":"Adriana"}},{"Key":"CAR5","Record":{"color":"purple","docType":"car","make":"Peugeot","model":"205","owner":"Michel"}},{"Key":"CAR6","Record":{"color":"white","docType":"car","make":"Chery","model":"S22L","owner":"Aarav"}},{"Key":"CAR7","Record":{"color":"violet","docType":"car","make":"Fiat","model":"Punto","owner":"Pari"}},{"Key":"CAR8","Record":{"color":"indigo","docType":"car","make":"Tata","model":"Nano","owner":"Valeria"}},{"Key":"CAR9","Record":{"color":"brown","docType":"car","make":"Holden","model":"Barina","owner":"Shotaro"}}]
+
+```
+
+3. Install Dependencies for a Test
+
+```bash
+# 만약 Error: EACCES: permission denied 발생시 아래 명령을 수행
+$sudo npm install pkcs11js --unsafe-perm=true --allow-root
+$sudo npm install
+
+# gulp 설치
+$sudo npm install -g gulp
+# Before we run fabcar we need to install its npm dependencies
+$sudo npm install
+```
+
+4. Download Marbles
+
+```bash
+$cd
+$git clone https://github.com/IBM-Blockchain/marbles.git --depth 1
+$cd marbles
+
+# marbles를 위한 라이브러리 설치
+$npm install --unsafe-perm
+$cd scripts/
+$node install_chaincode.js
+```
+
+5. Marbles 사용하기
+
+- 이 단계에서는 환경 설정, 블록체인 네트워크 생성, marbles 앱 및 체인코드가 실행되고 있어야 한다.
+- 브라우저를 실행하고 http://localhost:3001 접속
+
+```bash
+$gulp marbles_local
+```
