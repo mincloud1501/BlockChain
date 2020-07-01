@@ -284,6 +284,14 @@ $./start.sh
 
 ![transaction](images/transaction.png)
 
+- [Step 1] : Client Application에서 SDK를 통해 트랜잭션 제안(transaction proposal)을 발생시킨다.
+- [Step 2] : ChainCode의 보증 정책(endorsing policy)에 명시된 노드들(endorsing peers)은 chaincode를 실행한다.
+- [Step 3] : 각 결과값은 Client Application에 전달된다.
+- [Step 4] : 결과값이 보증 정책을 만족시키면, 결과값은 Ordering Service에 전달된다.
+- [Step 5] : Ordering Service는 먼저 도착한 순으로 Block을 만들어 Channel의 모든 Peer들에게 전달한다.
+- [Step 6] : 모든 peer는 도착한 block이 보증 정책을 만족시키는지, 장부 상태(ledger state)가 transaction이 일어나는 동안 바뀌지 않았는지 확인한다.
+- [Step 7] : 각 peer들은 block을 channel의 chain에 덧붙이며, ledger의 state를 update 한다.
+
 1. Download Fabric Samples
 
 ```bash
@@ -372,9 +380,47 @@ $gulp
 ```bash
 $gulp marbles_local
 ```
-![hyperledger](images/marbles-peek.gif)
+![marbles](images/marbles-peek.gif)
 
-[Definitions]
+### Hyperledger Fabric Network 만들기
+
+- Fabric Network를 만들기 위해서 가장 먼저 해야할 일은 Ordering Service를 구동하는 것이다.
+- Ordering Service는 블록 안의 트랜잭션 순서를 정하고 연결된 노드들에게 전달하는 기능을 한다.
+- Transaction의 순서는 `FCFS(first-come first-serve)` 방식에 의해 결정된다.
+
+![network](images/network.png)
+
+- Ordering Service node들은 Ordering Service를 호스팅하는 주체로, 한 그룹이 운영하는 중앙화된 방식에서 여러 그룹의 노드들이 참여하는 분산화된 모델까지 여러 합의 방식을 이용할 수 있다.
+- Hyperledger Fabric은 기본적으로 `SOLO(Single Ordering Service Node)`라는 싱글 노드 방식과 Kafka 방식이라는 `CFT(Crash fault tolerance)` 기반 합의 프로토콜을 제공한다. 추후 `PBFT(Practical Byzantine Fault Tolerance)`도 지원할 예정이다.
+- Kafka 방식이 가지는 성질인 CFT란 일부 시스템 구성 요소들이 작동하지 않더라도 올바른 합의에 도달할 수 있는 성질을 말한다. 기존 퍼블릭 블록체인에서 주로 사용되는 `BFT(Byzantine fault tolerance)` 시스템은 시스템 구성요소의 기능적 문제뿐 아니라 악의적인 공격(Malicious attack)까지 고려하므로 CFT 시스템과 비교했을 때 더욱 복잡하며 느리다.
+
+- 악의적인 주체(Malicious actors)의 공격 확률이 매우 작을 것으로 간주되므로 Private Blockchain에서는 BFT 기반 합의 프로토콜보다 더 빠르고 간단한 합의 프로토콜 또한 허용 가능한 범위로 간주된다.
+- Fabric을 사용하는 조직은 지원하는 합의 방식을 사용하거나 직접 구현할 수 있는데, 이렇게 합의 방식을 선택할 수 있는 특성을 fabric에서는 `교체 가능한 합의 프로토콜(Pluggable consensus)을 지원한다`고 한다.
+
+- Private blockchain에서는 어떤 네트워크 참여자가 어떤 권한을 가지는지 관리하는 것이 매우 중요한데, 그룹 별로 네트워크의 자원에 접근할 수 있는 권한은 관리자에 의해 정해져 Network Configuration에 저장된다.
+- 이를 위해 참여자의 ID와 권한을 관리할 주체가 필요하므로, `Certificate Authority(이하 CA)`가 필요하다. 간단히 말해 CA는 디지털 증명서(Digital certificate)를 발급하는 기관이다. 패브릭 네트워크에 참여하는 그룹들은 모두 개별 CA를 이용하게 된다.
+
+- [Step 1] : `Ordering Service` 구동 (Default)
+- [Step 2] : Network Configuration 설정
+- [Step 3] : Certificate Authority (CA) 설정
+- [Step 4] : `Consortium` 구성 : 공동의 목표를 가지고 트랜잭션 내역을 공유하며 협력하는 집단
+- [Step 5] : 컨소시엄이 이용하는 `Channel` 만들기 (그룹1과 그룹3이 채널1을 만든다.)
+	- Channel은 hyperledger fabric에서 매우 중요한 컨소시엄 내 그룹간 커뮤니케이션 메커니즘으로 데이터 분리(data isolation)와 기밀화를 가능케 하며, 채널용 장부(channel-specific ledger)는 채널 사용 허가를 받은 컨소시엄 멤버들만이 접근 가능하다.
+	- Network Configuration과 별개로 채널 설정이 존재하여, 채널 설정 정보에는 Channel에 접근할 수 있는 peer의 권한 정보등 채널 운영에 필요한 모든 정보를 담고있다.
+	- 채널 설정 정보는 블록에 담겨 장부에 기록된다. Channel은 네트워크 안에 존재하지만 네트워크 설정과 채널 설정 사이 중복되는 설정이 없으므로, 네트워크 설정이 변경되어도 채널 설정에 직접적인 영향은 없다.
+	- Privacy를 유지하며 효율적인 데이터 공유가 가능하게 만들기 때문에, 채널은 Public blockchain은 가지지 못하는 장점을 제공하는 중요한 기능이다. 한 네트워크 안에는 여러 컨소시엄들이 사용하는 채널들이 존재할 수 있다.
+	- 채널1에는 장부도 없고, 이를 호스팅할 peer도 없으므로, 그룹1의 피어1을 추가하기 위해 peer1은 오더링 서비스에 참여 요청을 보내면, 오더링 서비스는 채널1의 설정을 확인하고 peer1에게 접근 권한을 준다. peer1이 접근 권한을 받고 나면 peer1은 채널1의 Ledger1을 호스팅한다.
+- [Step 6] : `Smart Contract (Chaincode)` (피어1에 체인코드1을 설치 -> 피어2에 체인코드1을 설치(다른 언어여도 관계 없음) -> 체인코드1을 인스턴스화 한다.)
+	- Smart contract는 장부에 저장된 상태(state)를 업데이트 하는 코드(code)이다. 하이퍼레져 패브릭에서는 Chaincode라고 하며, 패브릭은 체인코드 언어로 현재 Go와 node.js를 지원한다.
+	- 체인코드를 사용하려면, 우선 피어 노드에 체인코드가 설치(install)되어야 한다. 피어에 체인코드를 설치하고 나면, 해당 피어는 그 체인코드의 구현 로직을 담게 된다. 특정 채널을 호스팅 하는 모든 피어들에 같은 체인코드를 설치할 필요는 없으며, 몇 개의 피어들만 선택하여 체인코드를 설치할 수 있다.
+	- 체인코드가 어떤 피어에 설치했다고 해서 바로 사용할 수 있는 것은 아니다. 그 피어가 호스팅 하는 채널에 연결된 다른 구성 요소들은 어떤 체인코드가 설치됐다는 사실을 알 수 없기 때문에 체인코드를 사용하려면 구현 로직이 아닌 해당 체인코드의 `인터페이스`(코드의 기능에 대한 규약. 코드 구현체는 이 인터페이스에 따라 구현된다.)를 다른 피어들에게 알리는 인스턴트화가 필요하다. 인스턴트화는 ‘instantiate’ 명령어를 이용하여 이루어질 수 있다.
+	- 체인코드가 피어에 설치되고, 인스턴트화까지 이루어지고 나면 Client application에 의해서 체인코드가 호출(invoke)될 수 있다.
+	- 일부 노드에만 체인코드의 구현 로직을 설치한다는 점은 기존의 퍼블릭 블록체인과 구분되는 차이점이다. 퍼블릭 블록체인에서는 모든 노드가 같은 스마트 컨트랙트(Smart contract)를 실행하고, 상호 검증하게 되므로 사용되는 시스템 구조는 어떤 특정 입력 값을 대입하면 항상 같은 출력 값을 출력하는 특성으로 결정적(Deterministic)이어야 한다.
+	- 기존의 퍼블릭 블록체인의 시스템에서는 보안을 위해 여러 기능(Network access,I/O stream, File W/R등)이 제한되어야 해서, 이더리움이 개발될 때도 이미 여러 훌륭한 프로그래밍 언어가 시중에 존재함에도 굳이 솔리디티(`Solidity`)라는 Smart contract용 제한적인 언어가 제안되었다.
+	- 하이퍼레져 패브릭에서는 일부 노드만 체인코드를 실행하고 결과값을 네트워크에 전파하기 때문에 프로그래밍 언어가 꼭 결정적일 필요는 없다. 또, 무한루프등의 문제가 발생해도 영향은 일부 노드로 제한되며, 그 노드는 실행을 종료할 수 있기 때문에 프로그래밍 언어 선택시 퍼블릭 블록체인만큼 엄격할 필요가 없다.
+
+
+[Network 구성 요소]
 
 - Peer : 블록체인의 멤버로 하이퍼레저 패브릭에서 실행된다.
 - CA : CA(인증 기관)는 블록체인 네트워크를 유지하는 책임을 맡고 있다. 응용 프로그램을 사용하는 고객들을 위한 거래 증명서를 제공한다.
