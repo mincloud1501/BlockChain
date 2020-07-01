@@ -137,7 +137,13 @@ $source ~/.profile
 
 ```bash
 $cd /fabric-samples/first-network
+
+# 필요 환경변수 Import 및 인증서와 Artifacts 생성하고 채널명을 결정
+# $HOME\fabric_samples\first_network\channel_artifacts에서 생성 파일 확인
 $./byfn.sh generate
+
+# 네트워크 기동, 채널 생성(Orderer에 의해), 각 Peer Join, Org의 Anchor Peer 설정(각 Org별), ChainCode Deploy 및 초기화, 블록 초기값 확인 및 변경, 블록 변경 상태 확인
+# Container 3개가 프로세스화 되어 실행 된다. (docker ps로 확인)
 $./byfn.sh up
  ____    _____      _      ____    _____ 
 / ___|  |_   _|    / \    |  _ \  |_   _|
@@ -274,7 +280,7 @@ $./start.sh
 
 ---
 
-### ■ Hyperledger Fabric Transaction [![Sources](https://img.shields.io/badge/출처-IBM_marbles-yellow)](https://github.com/IBM-Blockchain-Archive/marbles)
+## ■ Hyperledger Fabric Transaction [![Sources](https://img.shields.io/badge/출처-IBM_marbles-yellow)](https://github.com/IBM-Blockchain-Archive/marbles)
 
 ![transaction](images/transaction.png)
 
@@ -341,24 +347,21 @@ Transaction has been evaluated, result is: [{"Key":"CAR0","Record":{"color":"blu
 # 만약 Error: EACCES: permission denied 발생시 아래 명령을 수행
 $sudo npm install pkcs11js --unsafe-perm=true --allow-root
 $sudo npm install
-
-# gulp 설치
-$sudo npm install -g gulp
-# Before we run fabcar we need to install its npm dependencies
-$sudo npm install
 ```
 
 4. Download Marbles
 
 ```bash
 $cd
-$git clone https://github.com/IBM-Blockchain/marbles.git --depth 1
-$cd marbles
+$git clone http://gopkg.in/ibm-blockchain/marbles.v1
+$cd marbles.v1
 
+# gulp 설치
+$sudo npm install gulp -g
 # marbles를 위한 라이브러리 설치
-$npm install --unsafe-perm
-$cd scripts/
-$node install_chaincode.js
+$sudo npm install
+
+$gulp
 ```
 
 5. Marbles 사용하기
@@ -369,3 +372,16 @@ $node install_chaincode.js
 ```bash
 $gulp marbles_local
 ```
+![hyperledger](images/marbles-peek.gif)
+
+[Definitions]
+
+- Peer : 블록체인의 멤버로 하이퍼레저 패브릭에서 실행된다.
+- CA : CA(인증 기관)는 블록체인 네트워크를 유지하는 책임을 맡고 있다. 응용 프로그램을 사용하는 고객들을 위한 거래 증명서를 제공한다.
+- Orderer : Order 또는 주문 서비스는 블록으로 트랜잭션을 패키징하는 주된 책임이 있는 블록체인의 네트워크 구성
+- Users : 블록체인과 상호작용할 수 있는 권한이 부여된 개체. 
+- Blocks : 무결성을 확인하기 위한 트랜잭션과 해시를 포함하는 블록
+- Transactions or Proposals : 블록체인 원장과의 상호작용을 나타낸다. 원장의 열람 또는 작성요청은 거래/제안으로 송부한다.
+- Ledger : 피어의 블록체인을 위한 저장고. 트랜잭션 매개변수와 키 값 쌍으로 구성된 실제 블록 데이터를 포함하며 체인 코드로 쓰여져 있다.
+- Chaincode : Hyperledger Fabric이 스마트 계약을 대변한다. 자산과 자산에 대한 모든 규칙을 정의한다.
+- Assets : ledger에 존재하는 entity로 key-value쌍으로 구성
